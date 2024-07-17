@@ -35,5 +35,5 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "lebestnoob-webtorio-dd-67"
-          entrypoint: "deno main.js"
+          entrypoint: ""
           root: ""
