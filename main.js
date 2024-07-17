@@ -203,7 +203,7 @@ app.get("/downloads", async (c) => {
     for(let i in domainList) {
         dummy+=html`<p><a class="button" rel="noreferrer" href=${domainList[i]}>Mirror ${Number(i)+1}</a></p>`
     }
-    console.log(dummy);
+
 
     return c.html(
         html`<html>
