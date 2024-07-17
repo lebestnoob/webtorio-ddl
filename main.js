@@ -224,7 +224,7 @@ app.get("/downloads", async (c) => {
                         </nav>
                     </header>
                     <main>
-                        <h3>Download <code>${final}</code> as a ZIP-archive!</h3>
+                        <h3>Download <code>${decodeURIComponent(final)}</code> as a ZIP-archive!</h3>
                         <center>
                         ${raw(mirrorList)}
                         </center>
