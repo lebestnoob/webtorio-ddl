@@ -2,7 +2,7 @@
 Creates a zip file of a torrent through [Webtor.io's](https://webtor.io) hidden API
 
 # Demo
-
+https://webtorio-ddl.deno.dev
 
 # Troubleshooting
 * If you're unable to extract the downloaded zip file, try using [7-Zip](https://7-zip.org)
