@@ -79,10 +79,12 @@ app.get("/about", (c) => {
                 </header>
                 <main>
                     <h3>Welcome</h3>
-                    <p>This website has been built using <a href="https://github.com/kevquirk/simple.css">Simple.css</a> and a serverless <a href="https://hono.dev/">Hono</a> backend. If you'd like to see or make improvements to the shoddy put together here, feel free to open an issue or submit a pull request; the code is open source. I do not and will not accept any form of monetary compensation for this service. </p>
+                    <p>This website has been built using <a href="https://github.com/kevquirk/simple.css">Simple.css</a> and a serverless <a href="https://hono.dev/">Hono</a> backend. If you'd like to see or make improvements to the shoddy put together here, feel free to open an issue or submit a pull request; the code is open source. I do not accept any form of monetary compensation for this service. </p>
+                    <h3>What is Webtor.io DDL?</h3>
+                    <p>Webtor.io Direct Download Link (DDL) creates a zip file of a torrent through Webtor.io's hidden API.</p>
                     <h3>I'm unable to extract the zip!</h3>
                     <p>Try extracting the archive using <a href="https://www.7-zip.org/">7-Zip</a>. It may complain about it, but it'll still extract the file. If this does not work, try re-downloading the file. </p>
-                    <h3>The file is not found!</h3>
+                    <h3>File is not found!</h3>
                     <p>This message usually occurs when a torrent is not available in one of Webtor.io's trackers. However, it can also occur when downloading a file with a long name or several special characters. If you have a solution to this, don't hesitate to create a pull request. </p>
                 </main>
             <footer>
