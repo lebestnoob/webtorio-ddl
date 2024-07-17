@@ -104,7 +104,7 @@ app.get("/downloads", async (c) => {
     // const proxyPort = 8080;
     // const proxyUrl = `http://${proxyHost}:${proxyPort}`;
     // const proxyAgent = new HttpsProxyAgent(proxyUrl);
-    const infohash = magnetDecode(magnetLink).infoHash; // we can only reliably obtain the info hash from a magnet link. The name is truncated on longer file names, causing a download failures
+    const infoHash = magnetDecode(magnetLink).infoHash; // we can only reliably obtain the info hash from a magnet link. The name is truncated on longer file names, causing a download failures
     const apiKey = "8acbcf1e-732c-4574-a3bf-27e6a85b86f1"; // website default
     const api = "brilliant-bittern.buzz"
     
@@ -119,9 +119,9 @@ app.get("/downloads", async (c) => {
         const window = {
             __TOKEN__: ""
         };
-        const site_env = root.querySelector("script").textContent;
+        const siteEnv = root.querySelector("script").textContent;
         const regex = "window\.__[A-Za-z]+__ = '[^']*';";
-        const found = site_env.match(regex);
+        const found = siteEnv.match(regex);
         for (let token of found) {
             eval(token) // BAD IDEA!!! I'm too lazy to make it into a json
         }
@@ -146,7 +146,7 @@ app.get("/downloads", async (c) => {
     window.__TOKEN__ = tokenUpdate;
     
     // obtain list of valid subdomains from api
-    const subdomainList = await fetch(`https://api.${api}/subdomains.json?infohash=${infohash}&use-bandwidth=false&use-cpu=true&skip-active-job-search=false&pool=seeder&token=${window.__TOKEN__}&api-key=${apiKey}`, {
+    const subdomainList = await fetch(`https://api.${api}/subdomains.json?infohash=${infoHash}&use-bandwidth=false&use-cpu=true&skip-active-job-search=false&pool=seeder&token=${window.__TOKEN__}&api-key=${apiKey}`, {
       headers: {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
         'accept': '*/*',
@@ -182,7 +182,7 @@ app.get("/downloads", async (c) => {
       },
       "referrer": "https://webtor.io/",
       "referrerPolicy": "strict-origin-when-cross-origin",
-      "body": `\u0000\u0000\u0000\u0000*\n(${infohash}`,
+      "body": `\u0000\u0000\u0000\u0000*\n(${infoHash}`,
       "method": "POST",
       "mode": "cors",
       "credentials": "omit"
@@ -196,14 +196,14 @@ app.get("/downloads", async (c) => {
     if(!final)
      return c.notFound() // file wont download if name is undefined. It's not on Webtor's trackers
     const NEEDS_PARSE = "null" // works for the time being, userid and downloadid are optional
-    const domain_list = [];
+    const domainList = [];
     for (let subdomain of subdomainList) {
-        domain_list.push(`https://${subdomain}.api.${api}/${infohash}/${encodeURI(final)}~arch/${final}.zip/?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}`)
+        domainList.push(`https://${subdomain}.api.${api}/${infoHash}/${encodeURI(final)}~arch/${final}.zip/?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}`)
     }
 
     let dummy = ""; // Creating the html to embed later using template literals
-    for(let i in domain_list) {
-        dummy+=html`<p><a class="button" rel="noreferrer" href=${domain_list[i]}>Mirror ${Number(i)+1}</a></p>`
+    for(let i in domainList) {
+        dummy+=html`<p><a class="button" rel="noreferrer" href=${domainList[i]}>Mirror ${Number(i)+1}</a></p>`
     }
 
     return c.html(
