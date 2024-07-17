@@ -194,16 +194,11 @@ app.get("/downloads", async (c) => {
     if(!final)
      return c.notFound() // file wont download if name is undefined. It's not on Webtor's trackers
     const NEEDS_PARSE = "null" // works for the time being, userid and downloadid are optional
-    const domainList = [];
-    for (let subdomain of subdomainList) {
-        domainList.push(`https://${subdomain}.api.${api}/${infoHash}/${encodeURI(final)}~arch/${final}.zip/?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}`)
-    }
 
-    let dummy = ""; // Creating the html to embed later using template literals
-    for(let i in domainList) {
-        dummy+=html`<p><a class="button" rel="noreferrer" href=${domainList[i]}>Mirror ${Number(i)+1}</a></p>`
+    let mirrorList = ""; // Creating the html to embed later using template literals
+    for(let i in subdomainList) {
+        mirrorList+=html`<p><a class="button" rel="noreferrer" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURI(final)}~arch/${final}.zip/?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a></p>`
     }
-
 
     return c.html(
         html`<html>
@@ -230,7 +225,7 @@ app.get("/downloads", async (c) => {
                     <main>
                         <h3>Download <i>${final}</i> as a ZIP-archive!</h3>
                         <center>
-                        ${raw(dummy)}
+                        ${raw(mirrorList)}
                         </center>
                         <p class="notice">Zips do not contain valid CRC32 checksums. Extraction tools may complain.</p>
                     </main>
