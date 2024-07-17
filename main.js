@@ -100,7 +100,8 @@ app.get("/downloads", async (c) => {
     const check = new RegExp(/magnet:\?xt=urn:[a-z0-9]+:[a-z0-9]{32}/i)
     if(!check.test(magnetLink) || !magnetLink)
         return c.notFound();
-    // const proxyHost = '127.0.0.1'; 
+    console.log(magnetLink);
+        // const proxyHost = '127.0.0.1'; 
     // const proxyPort = 8080;
     // const proxyUrl = `http://${proxyHost}:${proxyPort}`;
     // const proxyAgent = new HttpsProxyAgent(proxyUrl);
