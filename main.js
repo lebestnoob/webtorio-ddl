@@ -1,6 +1,6 @@
 // import { HttpsProxyAgent } from 'https-proxy-agent'; rotating proxy for later
 import { DOMParser } from "https://esm.sh/linkedom";
-import { magnetDecode } from 'npm:@ctrl/magnet-link';
+import parseTorrent, { remote } from 'npm:parse-torrent'
 import { v4 as uuidv4 } from 'npm:uuid';
 import { Hono } from 'npm:hono'
 import { html, raw } from 'npm:hono/html'
@@ -102,7 +102,7 @@ app.get("/downloads", async (c) => {
     // const proxyPort = 8080;
     // const proxyUrl = `http://${proxyHost}:${proxyPort}`;
     // const proxyAgent = new HttpsProxyAgent(proxyUrl);
-    const infoHash = magnetDecode(magnetLink).infoHash; // we can only reliably obtain the info hash from a magnet link. The name is truncated on longer file names, causing a download failures
+    const infoHash = (await parseTorrent(magnetLink)).infoHash; // we can only reliably obtain the info hash from a magnet link. The name is truncated on longer file names, causing a download failures
     const apiKey = "8acbcf1e-732c-4574-a3bf-27e6a85b86f1"; // website default
     const api = "brilliant-bittern.buzz"
     
@@ -185,19 +185,20 @@ app.get("/downloads", async (c) => {
       "mode": "cors",
       "credentials": "omit"
     }).then((res)=>res.text()); // yes, we're really parsing a binary as text and using a regex to get the file name. It works.
-    const expression = new RegExp(/name(?:\d+)([:])(.*?)(?=12:piece)/gm); // i suck at regex, i asked gemini to create this section for me. This binary seems to contain a string that goes "name###:TORRENT 12:piece" on all torrents
-    let torrent_name; // gemini
+   
+    const expression = new RegExp(/name(?:\d+)([:])(.*?)(?=12:piece)/gm); // i suck at regex, i asked gemini to create this section for me. This seems to be a torrent file, we're parsing for the line that goes "name###:TORRENT12:piece"
+    let torrentName; // gemini
     let final;
-    while ((torrent_name = expression.exec(queryTorrent)) !== null) { // gemini
-        final = torrent_name[2]; // Access group 2 (content after colon) // gemini
+    while ((torrentName = expression.exec(queryTorrent)) !== null) { // gemini
+        final = torrentName[2]; // Access group 2 (content after colon) // gemini
     } // gemini
     if(!final)
-     return c.notFound() // file wont download if name is undefined. It's not on Webtor's trackers
+     return c.notFound() // file wont download if name is undefined. It's probably not on Webtor's trackers
     const NEEDS_PARSE = "null" // works for the time being, userid and downloadid are optional
 
-    let mirrorList = ""; // Creating the html to embed later using template literals
+    let mirrorList = html``; // Creating the html to embed later using template literals
     for(let i in subdomainList) {
-        mirrorList+=html`<p><a class="button" rel="noreferrer" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURI(final)}~arch/${final}.zip/?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a></p>`
+        mirrorList+=html`<p><a class="button" rel="noreferrer" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURIComponent(final)}~arch/${decodeURIComponent(final)}.zip?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a></p>`
     }
 
     return c.html(
