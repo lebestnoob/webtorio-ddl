@@ -204,7 +204,7 @@ app.get("/downloads", async (c) => {
     return c.html(
         html`<html>
         <head>
-            <title>Webtor.io DDL</title>
+            <title>${decodeURIComponent(final)} - Webtor.io DDL</title>
             <link rel="stylesheet" href="https://cdn.simplecss.org/simple.css">
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -224,7 +224,7 @@ app.get("/downloads", async (c) => {
                         </nav>
                     </header>
                     <main>
-                        <h3>Download <i>${final}</i> as a ZIP-archive!</h3>
+                        <h3>Download <code>${final}</code> as a ZIP-archive!</h3>
                         <center>
                         ${raw(mirrorList)}
                         </center>
