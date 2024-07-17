@@ -1,9 +1,7 @@
-// import fetch from 'node-fetch';
 // import { HttpsProxyAgent } from 'https-proxy-agent'; rotating proxy for later
-import { parse } from 'npm:node-html-parser';
+import { DOMParser } from "https://esm.sh/linkedom";
 import { magnetDecode } from 'npm:@ctrl/magnet-link';
 import { v4 as uuidv4 } from 'npm:uuid';
-// import { serve } from '@hono/node-server'
 import { Hono } from 'npm:hono'
 import { html, raw } from 'npm:hono/html'
 
@@ -100,7 +98,6 @@ app.get("/downloads", async (c) => {
     const check = new RegExp(/magnet:\?xt=urn:[a-z0-9]+:[a-z0-9]{32}/i)
     if(!check.test(magnetLink) || !magnetLink)
         return c.notFound();
-    console.log(magnetLink);
         // const proxyHost = '127.0.0.1'; 
     // const proxyPort = 8080;
     // const proxyUrl = `http://${proxyHost}:${proxyPort}`;
@@ -115,8 +112,8 @@ app.get("/downloads", async (c) => {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0' }
         // , agent: proxyAgent
     });
-        const cookie = obtainToken.headers.raw()['set-cookie'][0].split(';')[0] // save  the cookie set by the first request to use in all other requests
-        const root = parse(await obtainToken.text()); 
+        const cookie = obtainToken.headers.get('set-cookie').split(';')[0] // save  the cookie set by the first request to use in all other requests
+        const root = new DOMParser().parseFromString(await obtainToken.text()); 
         const window = {
             __TOKEN__: ""
         };
@@ -188,7 +185,7 @@ app.get("/downloads", async (c) => {
       "mode": "cors",
       "credentials": "omit"
     }).then((res)=>res.text()); // yes, we're really parsing a binary as text and using a regex to get the file name. It works.
-    const expression = new RegExp(/name(?:\d+)([:])(.*?)(?=12:piece)/gm); // i suck at regex, i asked gemini to create this section for me. improvements are welcome.
+    const expression = new RegExp(/name(?:\d+)([:])(.*?)(?=12:piece)/gm); // i suck at regex, i asked gemini to create this section for me. This binary seems to contain a string that goes "name###:TORRENT 12:piece" on all torrents
     let torrent_name; // gemini
     let final;
     while ((torrent_name = expression.exec(queryTorrent)) !== null) { // gemini
@@ -206,6 +203,7 @@ app.get("/downloads", async (c) => {
     for(let i in domainList) {
         dummy+=html`<p><a class="button" rel="noreferrer" href=${domainList[i]}>Mirror ${Number(i)+1}</a></p>`
     }
+    console.log(dummy);
 
     return c.html(
         html`<html>
