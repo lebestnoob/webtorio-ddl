@@ -2,8 +2,8 @@ import { DOMParser } from "https://esm.sh/linkedom";
 import parseTorrent from 'npm:parse-torrent'
 import { Hono } from 'npm:hono'
 import { etag } from 'npm:hono/etag'
-import { cache } from 'hono/cache'
-import { compress } from 'hono/compress'
+import { cache } from 'npm:hono/cache'
+import { compress } from 'npm:hono/compress'
 import { html, raw } from 'npm:hono/html'
 
 const app = new Hono();
