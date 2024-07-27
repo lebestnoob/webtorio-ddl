@@ -85,8 +85,8 @@ app.get("/about", (c) => {
                 <main>
                     <h3>Welcome</h3>
                     <p>This website has been built using <a href="https://github.com/kevquirk/simple.css">Simple.css</a> and a serverless <a href="https://hono.dev/">Hono</a> backend. If you'd like to see or make improvements to the shoddy put together here, feel free to open an <a href="https://github.com/lebestnoob/webtorio-ddl/issues">issue</a> or submit a <a href="https://github.com/lebestnoob/webtorio-ddl/pulls">pull request</a>; the code is <a href="https://github.com/lebestnoob/webtorio-ddl/">open source</a>. I do not accept any form of monetary compensation for this service. </p>
-                    <h3>What is Webtor.io DDL?</h3>
-                    <p>Webtor.io Direct Download Link (DDL) creates a zip file of a torrent through Webtor.io's hidden API.</p>
+                    <h3>What is and why Webtor.io DDL?</h3>
+                    <p>Webtor.io Direct Download Link (DDL) creates a zip file of a torrent through Webtor.io's hidden API. Why? The original website does not work well on mobile.</p>
                     <h3>I'm unable to extract the zip!</h3>
                     <p>Try extracting the archive using <a href="https://www.7-zip.org/">7-Zip</a>. It may complain about it, but it'll still extract the file. If this does not work, try re-downloading the file. </p>
                     <h3>File is not found!</h3>
