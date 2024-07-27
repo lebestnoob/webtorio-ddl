@@ -1,11 +1,18 @@
-// import { HttpsProxyAgent } from 'https-proxy-agent'; rotating proxy for later
 import { DOMParser } from "https://esm.sh/linkedom";
-import parseTorrent, { remote } from 'npm:parse-torrent'
-import { v4 as uuidv4 } from 'npm:uuid';
+import parseTorrent from 'npm:parse-torrent'
 import { Hono } from 'npm:hono'
+import { etag } from 'npm:hono/etag'
+import { cache } from 'hono/cache'
+import { compress } from 'hono/compress'
 import { html, raw } from 'npm:hono/html'
 
 const app = new Hono();
+
+app.use('*', compress(), cache({
+    cacheName: 'webtor-ddl',
+    cacheControl: 'max-age=3600',
+    wait: true,
+  }), etag())
 
 app.get("/", (c) => {
   return c.html(
@@ -98,19 +105,14 @@ app.get("/downloads", async (c) => {
     const check = new RegExp(/magnet:\?xt=urn:[a-z0-9]+:[a-z0-9]{32}/i)
     if(!check.test(magnetLink) || !magnetLink)
         return c.notFound();
-        // const proxyHost = '127.0.0.1'; 
-    // const proxyPort = 8080;
-    // const proxyUrl = `http://${proxyHost}:${proxyPort}`;
-    // const proxyAgent = new HttpsProxyAgent(proxyUrl);
     const infoHash = (await parseTorrent(magnetLink)).infoHash; // we can only reliably obtain the info hash from a magnet link. The name is truncated on longer file names, causing a download failures
     const apiKey = "8acbcf1e-732c-4574-a3bf-27e6a85b86f1"; // website default
     const api = "brilliant-bittern.buzz"
     
     try {
         // parse website to obtain first token
-        const obtainToken  = await fetch(`https://webtor.io/show?id=${uuidv4()}&mode=video&version=0.2.12&lang=null&i18n=%5Bobject+Object%5D&features=%5Bobject+Object%5D HTTP/2.0`, { headers: {
+        const obtainToken  = await fetch(`https://webtor.io/show?id=${crypto.randomUUID()}&mode=video&version=0.2.12&lang=null&i18n=%5Bobject+Object%5D&features=%5Bobject+Object%5D HTTP/2.0`, { headers: {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0' }
-        // , agent: proxyAgent
     });
         const cookie = obtainToken.headers.get('set-cookie').split(';')[0] // save  the cookie set by the first request to use in all other requests
         const root = new DOMParser().parseFromString(await obtainToken.text()); 
@@ -139,7 +141,6 @@ app.get("/downloads", async (c) => {
         'sec-fetch-site': 'same-origin',
         'te': 'trailers'
       }
-    //   , agent: proxyAgent 
     }).then((res)=>res.text());
     window.__TOKEN__ = tokenUpdate;
     
