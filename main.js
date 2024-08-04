@@ -27,7 +27,7 @@ app.get("/", (c) => {
                 --accent: red;
             }
             input {
-                width: 45vw
+                width: 45vw;
             }
             input, button {
                 vertical-align: middle;
