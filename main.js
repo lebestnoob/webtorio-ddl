@@ -26,6 +26,17 @@ app.get("/", (c) => {
             :root {
                 --accent: red;
             }
+            input {
+                width: 45vw
+            }
+            input, button {
+                vertical-align: middle;
+            }
+            div.center {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
         </style>
       </head>
         <body>
@@ -40,14 +51,11 @@ app.get("/", (c) => {
                 <main>
                     <h3>Just paste a magnet link and start downloading as a ZIP-archive!</h3>
                     <form action="/downloads" method="GET">
-                        <p>
-                            <label>Magnet Link</label>
-                            <figure>
-                            <input type="text" style="width: 45em;" placeholder="magnet:?xt=urn:" name="magnetLink" required>
-                            </figure>
-                        </p>
-
-                        <button>Go</button>
+                        <label style="text-align: center;">Magnet Link</label>
+                        <div class="center">
+                            <input type="text" placeholder="magnet:?xt=urn:" name="magnetLink" required>
+                            <button>Go</button>
+                        </div>
                     </form>
                     <p class="notice">Zips do not contain valid CRC32 checksums. Extraction tools may complain.</p>
                 </main>
@@ -186,7 +194,7 @@ app.get("/downloads", async (c) => {
       "mode": "cors",
       "credentials": "omit"
     }).then((res)=>res.text()); // yes, we're really parsing a binary as text and using a regex to get the file name. It works.
-   
+    
     const expression = new RegExp(/name(?:\d+)([:])(.*?)(?=12:piece)/gm); // i suck at regex, i asked gemini to create this section for me. This seems to be a torrent file, we're parsing for the line that goes "name###:TORRENT12:piece"
     let torrentName; // gemini
     let final;
