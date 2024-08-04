@@ -1,5 +1,6 @@
 import { DOMParser } from "https://esm.sh/linkedom";
 import parseTorrent from 'npm:parse-torrent'
+import { prettyBytes } from "https://deno.land/std@0.126.0/fmt/bytes.ts";
 import { Hono } from 'npm:hono'
 import { etag } from 'npm:hono/etag'
 import { cache } from 'npm:hono/cache'
@@ -44,7 +45,7 @@ app.get("/", (c) => {
                     <h1>Webtor.io DDL</h1>
                     <p>Download Torrents for FREE!</p>
                     <nav>
-                        <a href="/">Home</a>
+                        <a href="/" class="current">Home</a>
                         <a href="/about">About</a>
                     </nav>
                 </header>
@@ -87,7 +88,7 @@ app.get("/about", (c) => {
                     <p>Download Torrents for FREE!</p>
                     <nav>
                         <a href="/">Home</a>
-                        <a href="/about">About</a>
+                        <a href="/about" class="current">About</a>
                     </nav>
                 </header>
                 <main>
@@ -120,8 +121,8 @@ app.get("/downloads", async (c) => {
     try {
         // parse website to obtain first token
         const obtainToken  = await fetch(`https://webtor.io/show?id=${crypto.randomUUID()}&mode=video&version=0.2.12&lang=null&i18n=%5Bobject+Object%5D&features=%5Bobject+Object%5D HTTP/2.0`, { headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0' }
-    });
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0' }
+        });
         const cookie = obtainToken.headers.get('set-cookie').split(';')[0] // save  the cookie set by the first request to use in all other requests
         const root = new DOMParser().parseFromString(await obtainToken.text()); 
         const window = {
@@ -130,90 +131,93 @@ app.get("/downloads", async (c) => {
         const siteEnv = root.querySelector("script").textContent;
         const regex = "window\.__[A-Za-z]+__ = '[^']*';";
         const found = siteEnv.match(regex);
-        for (let token of found) {
+        for (const token of found) {
             eval(token) // BAD IDEA!!! I'm too lazy to make it into a json
         }
 
         // refresh token from api, this token is used in subsequent requests
         const tokenUpdate = await fetch('https://webtor.io/token/', {
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
-        'accept': '*/*',
-        'accept-language': 'en-US,en;q=0.5',
-        'referer': 'https://webtor.io/',
-        'cookie': cookie,
-        'token': window.__TOKEN__,
-        'dnt': '1',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'te': 'trailers'
-      }
-    }).then((res)=>res.text());
-    window.__TOKEN__ = tokenUpdate;
+        headers: {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+            'accept': '*/*',
+            'accept-language': 'en-US,en;q=0.5',
+            'referer': 'https://webtor.io/',
+            'cookie': cookie,
+            'token': window.__TOKEN__,
+            'dnt': '1',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            'te': 'trailers'
+        }
+        }).then((res)=>res.text());
+        window.__TOKEN__ = tokenUpdate;
     
     // obtain list of valid subdomains from api
-    const subdomainList = await fetch(`https://api.${api}/subdomains.json?infohash=${infoHash}&use-bandwidth=false&use-cpu=true&skip-active-job-search=false&pool=seeder&token=${window.__TOKEN__}&api-key=${apiKey}`, {
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
-        'accept': '*/*',
-        'accept-language': 'en-US,en;q=0.5',
-        'referer': 'https://webtor.io/',
-        'origin': 'https://webtor.io',
-        'dnt': '1',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'cross-site',
-        'te': 'trailers'
-      }
-    }).then((res)=>res.json());
+        const subdomainList = await fetch(`https://api.${api}/subdomains.json?infohash=${infoHash}&use-bandwidth=false&use-cpu=true&skip-active-job-search=false&pool=seeder&token=${window.__TOKEN__}&api-key=${apiKey}`, {
+        headers: {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+            'accept': '*/*',
+            'accept-language': 'en-US,en;q=0.5',
+            'referer': 'https://webtor.io/',
+            'origin': 'https://webtor.io',
+            'dnt': '1',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'cross-site',
+            'te': 'trailers'
+        }
+        }).then((res)=>res.json());
     
-    // query torrent from api to obtain file name
-    let queryTorrent = await fetch(`https://api.${api}/store/TorrentStore/Pull`, {
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
-        "accept": "*/*",
-        "accept-language": "en-US,en;q=0.9",
-        "api-key": apiKey,
-        "cache-control": "no-cache",
-        "content-type": "application/grpc-web+proto",
-        "pragma": "no-cache",
-        "priority": "u=1, i",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "cross-site",
-        "sec-gpc": "1",
-        "token": window.__TOKEN__,
-        "user-id": "null",
-        "x-grpc-web": "1"
-      },
-      "referrer": "https://webtor.io/",
-      "referrerPolicy": "strict-origin-when-cross-origin",
-      "body": `\u0000\u0000\u0000\u0000*\n(${infoHash}`,
-      "method": "POST",
-      "mode": "cors",
-      "credentials": "omit"
-    }).then((res)=>res.text()); // yes, we're really parsing a binary as text and using a regex to get the file name. It works.
+        // query torrent from api to obtain file name
+        const queryTorrent = await fetch(`https://api.${api}/store/TorrentStore/Pull`, {
+        headers: {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+            "accept": "*/*",
+            "accept-language": "en-US,en;q=0.9",
+            "api-key": apiKey,
+            "cache-control": "no-cache",
+            "content-type": "application/grpc-web+proto",
+            "pragma": "no-cache",
+            "priority": "u=1, i",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "sec-gpc": "1",
+            "token": window.__TOKEN__,
+            "user-id": "null",
+            "x-grpc-web": "1"
+        },
+        "referrer": "https://webtor.io/",
+        "referrerPolicy": "strict-origin-when-cross-origin",
+        "body": `\u0000\u0000\u0000\u0000*\n(${infoHash}`,
+        "method": "POST",
+        "mode": "cors",
+        "credentials": "omit"
+        }).then((res)=>res.arrayBuffer()); 
+   
+    const uint8array = new Uint8Array(queryTorrent);
+    const fixedTorrent = uint8array.subarray(9); // remove first nine bytes because Webtor.io adds them for some reason
+    const parsedTorrent = await parseTorrent(fixedTorrent); 
     
-    const expression = new RegExp(/name(?:\d+)([:])(.*?)(?=12:piece)/gm); // i suck at regex, i asked gemini to create this section for me. This seems to be a torrent file, we're parsing for the line that goes "name###:TORRENT12:piece"
-    let torrentName; // gemini
-    let final;
-    while ((torrentName = expression.exec(queryTorrent)) !== null) { // gemini
-        final = torrentName[2]; // Access group 2 (content after colon) // gemini
-    } // gemini
-    if(!final)
-     return c.notFound() // file wont download if name is undefined. It's probably not on Webtor's trackers
-    const NEEDS_PARSE = "null" // works for the time being, userid and downloadid are optional
+    if(!parsedTorrent)
+        return c.notFound()
+    
+    const torrentName = parsedTorrent.name;
+    const torrentSize = prettyBytes(parsedTorrent.length, { binary: true });
+    const torrentFiles = parsedTorrent.files;
+
+    const NEEDS_PARSE = "null"
 
     let mirrorList = html``; // Creating the html to embed later using template literals
-    for(let i in subdomainList) {
-        mirrorList+=html`<p><a class="button" rel="noreferrer" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURIComponent(final)}~arch/${decodeURIComponent(final)}.zip?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a></p>`
+    for(const i in subdomainList) {
+        mirrorList+=html`<p><a class="button" rel="noreferrer" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURIComponent(torrentName)}~arch/${decodeURIComponent(torrentName)}.zip?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a></p>`
     }
 
     return c.html(
         html`<html>
         <head>
-            <title>${decodeURIComponent(final)} - Webtor.io DDL</title>
+            <title>${decodeURIComponent(torrentName)} - Webtor.io DDL</title>
             <link rel="stylesheet" href="https://cdn.simplecss.org/simple.css">
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -233,9 +237,10 @@ app.get("/downloads", async (c) => {
                         </nav>
                     </header>
                     <main>
-                        <h3>Download <code>${decodeURIComponent(final)}</code> as a ZIP-archive!</h3>
+                        <h4>Download <code>${decodeURIComponent(torrentName)}</code> as a ZIP!</h4>
+                        <strong><cite>File Size: <code>${torrentSize}</code></cite></strong>
                         <center>
-                        ${raw(mirrorList)}
+                            ${raw(mirrorList)}
                         </center>
                         <p class="notice">Zips do not contain valid CRC32 checksums. Extraction tools may complain.</p>
                     </main>

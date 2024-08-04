@@ -208,6 +208,7 @@
     "https://esm.sh/linkedom": "https://esm.sh/linkedom@0.18.4"
   },
   "remote": {
+    "https://deno.land/std@0.126.0/fmt/bytes.ts": "fa67870bba35f73e1e564e27377c342763770cf1d0fb4e0e29ba9c730a8db6cf",
     "https://esm.sh/linkedom@0.18.4": "f6a0db4b43763ada73eccf137a602a673aa14f9a71ff4eef9e1b08b56affb6bb",
     "https://esm.sh/v135/boolbase@1.0.0/denonext/boolbase.mjs": "4e3bd67e9b1c5c55094eae98345d0107c6a44ef57bd3d4b9579698fa44722280",
     "https://esm.sh/v135/canvas@2.11.2/denonext/canvas.mjs": "4245b1d01d91b5e807b85e40e98efe28c93634260bd8cb5ac0da71c42098a1a4",
