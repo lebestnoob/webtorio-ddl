@@ -196,59 +196,78 @@ app.get("/downloads", async (c) => {
         "credentials": "omit"
         }).then((res)=>res.arrayBuffer()); 
    
-    const uint8array = new Uint8Array(queryTorrent);
-    const fixedTorrent = uint8array.subarray(9); // remove first nine bytes because Webtor.io adds them for some reason
-    const parsedTorrent = await parseTorrent(fixedTorrent); 
-    
-    if(!parsedTorrent)
-        return c.notFound()
-    
-    const torrentName = parsedTorrent.name;
-    const torrentSize = prettyBytes(parsedTorrent.length, { binary: true });
-    const torrentFiles = parsedTorrent.files;
+        const uint8array = new Uint8Array(queryTorrent);
+        const fixedTorrent = uint8array.subarray(9); // remove first nine bytes because Webtor.io adds them for some reason
+        const parsedTorrent = await parseTorrent(fixedTorrent); 
+        
+        if(!parsedTorrent)
+            return c.notFound()
+        
+        const torrentName = parsedTorrent.name;
+        const torrentSize = prettyBytes(parsedTorrent.length, { binary: true });
+        const torrentFiles = parsedTorrent.files;
+        const NEEDS_PARSE = "null"
 
-    const NEEDS_PARSE = "null"
+        // create html for torrent file contents 
+        let filesList = html``;
+        for (const file of torrentFiles) {
+            let mirrorList = html``
+            for(const i in subdomainList)
+                mirrorList += html`<a rel="noreferrer noopener" target="_blank" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURIComponent(file.path.replaceAll("\\", "/"))}?user-id=${NEEDS_PARSE}&download=true&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a> `
+            filesList+=html`
+                <details>
+                    <summary>${file.name}</summary>
+                    <p>File Size: <code>${prettyBytes(file.length, { binary: true })}</code></p>
+                    <p>Path: <code>${file.path.replaceAll("\\", "/")}</code></p>
+                    ${raw(mirrorList)}
+                </details>`
+        }
+        
+        let mirrorList = html``; // Creating the html to embed later using template literals
+        for(const i in subdomainList) {
+            mirrorList+=html`<a class="button" rel="noreferrer noopener" target="_blank" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURIComponent(torrentName)}~arch/${decodeURIComponent(torrentName)}.zip?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a> `
+        }
 
-    let mirrorList = html``; // Creating the html to embed later using template literals
-    for(const i in subdomainList) {
-        mirrorList+=html`<p><a class="button" rel="noreferrer" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURIComponent(torrentName)}~arch/${decodeURIComponent(torrentName)}.zip?user-id=${NEEDS_PARSE}&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a></p>`
-    }
-
-    return c.html(
-        html`<html>
-        <head>
-            <title>${decodeURIComponent(torrentName)} - Webtor.io DDL</title>
-            <link rel="stylesheet" href="https://cdn.simplecss.org/simple.css">
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-                :root {
-                    --accent: red;
-                }
-            </style>
-        </head>
-            <body>
-                <header>
-                        <h1>Webtor.io DDL</h1>
-                        <p>Download Torrents for FREE!</p>
-                        <nav>
-                            <a href="/">Home</a>
-                            <a href="/about">About</a>
-                        </nav>
-                    </header>
-                    <main>
-                        <h4>Download <code>${decodeURIComponent(torrentName)}</code> as a ZIP!</h4>
-                        <strong><cite>File Size: <code>${torrentSize}</code></cite></strong>
-                        <center>
-                            ${raw(mirrorList)}
-                        </center>
-                        <p class="notice">Zips do not contain valid CRC32 checksums. Extraction tools may complain.</p>
-                    </main>
-                <footer>
-                    This service utilizes Webtor.io's <i>hidden</i> API. It is not associated or affiliated with <a href="https://webtor.io">Webtor.io</a> in any way.
-                </footer>
-            </body>
-        </html>`  )
+        return c.html(
+            html`<html>
+            <head>
+                <title>${decodeURIComponent(torrentName)} - Webtor.io DDL</title>
+                <link rel="stylesheet" href="https://cdn.simplecss.org/simple.css">
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    :root {
+                        --accent: red;
+                    }
+                </style>
+            </head>
+                <body>
+                    <header>
+                            <h1>Webtor.io DDL</h1>
+                            <p>Download Torrents for FREE!</p>
+                            <nav>
+                                <a href="/">Home</a>
+                                <a href="/about">About</a>
+                            </nav>
+                        </header>
+                        <main>
+                            <h4>Download <code>${decodeURIComponent(torrentName)}</code> as a ZIP!</h4>
+                                ${torrentFiles.length > 1 ? html`                            <aside>
+                                <p>Scroll down or <a href="#content">click here</a> to view/download individual files from the torrent</p>
+                            </aside>` : ""}
+                            <strong><blockquote>File Size: <code>${torrentSize}</code>, <code>${torrentFiles.length}</code> file(s)</blockquote></strong>
+                            <center>
+                                ${raw(mirrorList)}
+                            </center>
+                            <p class="notice">Zips do not contain valid CRC32 checksums. Extraction tools may complain.</p>
+                            <h4 id="content"> Contents: </h4>
+                            ${raw(filesList)}
+                        </main>
+                    <footer>
+                        This service utilizes Webtor.io's <i>hidden</i> API. It is not associated or affiliated with <a href="https://webtor.io">Webtor.io</a> in any way.
+                    </footer>
+                </body>
+            </html>`  )
     } catch(e) { // needs better error handling
         // console.error(e)
         c.text("500 Internal Server Error", 500);
