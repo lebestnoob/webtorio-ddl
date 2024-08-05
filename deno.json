@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net main.js"
+  },
+  "nodeModulesDir": true,
+  "imports": {
+    "hono": "npm:hono@^4.5.3",
+    "parse-torrent": "npm:parse-torrent@^11.0.17"
+  }
+}

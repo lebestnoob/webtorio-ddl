@@ -3,8 +3,10 @@
   "packages": {
     "specifiers": {
       "npm:@ctrl/magnet-link": "npm:@ctrl/magnet-link@4.0.2",
+      "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:hono": "npm:hono@4.5.0",
       "npm:hono@^4.5.0": "npm:hono@4.5.0",
+      "npm:hono@^4.5.3": "npm:hono@4.5.3",
       "npm:node-html-parser": "npm:node-html-parser@6.1.13",
       "npm:parse-torrent": "npm:parse-torrent@11.0.17",
       "npm:parse-torrent@^11.0.17": "npm:parse-torrent@11.0.17",
@@ -23,6 +25,10 @@
         "dependencies": {
           "uint8-util": "uint8-util@2.2.5"
         }
+      },
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
+        "dependencies": {}
       },
       "abort-controller@3.0.0": {
         "integrity": "sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==",
@@ -132,6 +138,10 @@
         "integrity": "sha512-ZbezypZfn4odyApjCCv+Fw5OgweBqRLA/EsMyc4FUknFvBJcBIKhHy4sqmD1rWpBc/3wUlaQ6tqOPjk36R1ckg==",
         "dependencies": {}
       },
+      "hono@4.5.3": {
+        "integrity": "sha512-r26WwwbKD3BAYdfB294knNnegNda7VfV1tVn66D9Kvl9WQTdrR+5eKdoeaQNHQcC3Gr0KBikzAtjd6VsRGVSaw==",
+        "dependencies": {}
+      },
       "magnet-uri@7.0.5": {
         "integrity": "sha512-Ke+dDiYHK1Rq/ZyGUAgk7NIkoypivxolTj/A0qr60ypP0FjeP+NTUNEhr965HsRan0zGxKEBK73+SsjRyJWkXg==",
         "dependencies": {
@@ -228,6 +238,10 @@
     "https://esm.sh/v135/uhyphen@0.2.0/denonext/uhyphen.mjs": "53c707ad31488ef2f131e2ac9257d91b7b590a777e60288a34b3a04f1e65ad5a"
   },
   "workspace": {
+    "dependencies": [
+      "npm:hono@^4.5.3",
+      "npm:parse-torrent@^11.0.17"
+    ],
     "packageJson": {
       "dependencies": [
         "npm:hono@^4.5.0",

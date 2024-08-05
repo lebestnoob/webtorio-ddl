@@ -1,11 +1,11 @@
-import { DOMParser } from "https://esm.sh/linkedom";
-import parseTorrent from 'npm:parse-torrent'
+import parseTorrent from 'parse-torrent'
 import { prettyBytes } from "https://deno.land/std@0.126.0/fmt/bytes.ts";
-import { Hono } from 'npm:hono'
-import { etag } from 'npm:hono/etag'
-import { cache } from 'npm:hono/cache'
-import { compress } from 'npm:hono/compress'
-import { html, raw } from 'npm:hono/html'
+import { Hono } from 'hono'
+import { etag } from 'hono/etag'
+import { cache } from 'hono/cache'
+import { compress } from 'hono/compress'
+import { html, raw } from 'hono/html'
+import toTree from "./toTree.js"
 
 const app = new Hono();
 
@@ -58,7 +58,7 @@ app.get("/", (c) => {
                             <button>Go</button>
                         </div>
                     </form>
-                    <p class="notice">Zips do not contain valid CRC32 checksums. Extraction tools may complain.</p>
+                    <p class="notice">⚠️ Zips do not contain valid CRC32 checksums. Extraction tools may complain.</p>
                 </main>
             <footer>
                 This service utilizes Webtor.io's <i>hidden</i> API. It is not associated or affiliated with <a href="https://webtor.io">Webtor.io</a> in any way.
@@ -124,13 +124,12 @@ app.get("/downloads", async (c) => {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0' }
         });
         const cookie = obtainToken.headers.get('set-cookie').split(';')[0] // save  the cookie set by the first request to use in all other requests
-        const root = new DOMParser().parseFromString(await obtainToken.text()); 
         const window = {
             __TOKEN__: ""
         };
-        const siteEnv = root.querySelector("script").textContent;
+        const siteHTML = await obtainToken.text();
         const regex = "window\.__[A-Za-z]+__ = '[^']*';";
-        const found = siteEnv.match(regex);
+        const found = siteHTML.match(regex);
         for (const token of found) {
             eval(token) // BAD IDEA!!! I'm too lazy to make it into a json
         }
@@ -259,7 +258,7 @@ app.get("/downloads", async (c) => {
                             <center>
                                 ${raw(mirrorList)}
                             </center>
-                            <p class="notice">Zips do not contain valid CRC32 checksums. Extraction tools may complain.</p>
+                            <p class="notice">⚠️ Zips do not contain valid CRC32 checksums. Extraction tools may complain.</p>
                             <h4 id="content"> Contents: </h4>
                             ${raw(filesList)}
                         </main>
@@ -268,7 +267,7 @@ app.get("/downloads", async (c) => {
                     </footer>
                 </body>
             </html>`  )
-    } catch(e) { // needs better error handling
+    } catch(_e) { // needs better error handling
         // console.error(e)
         c.text("500 Internal Server Error", 500);
     }
