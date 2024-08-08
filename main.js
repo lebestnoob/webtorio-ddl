@@ -6,7 +6,6 @@ import { cache } from 'hono/cache'
 import { compress } from 'hono/compress'
 import { html, raw } from 'hono/html'
 // import toTree from "./utils/toTree.js" for future use in download screen
-import concatTypedArrays from "./utils/concatTypedArrays.js";
 
 const app = new Hono();
 
@@ -225,15 +224,14 @@ app.get("/downloads", async (c) => {
         "mode": "cors",
         "credentials": "omit"
         }).then((res)=>res.arrayBuffer()); 
-    
+
+        if (new TextDecoder().decode(queryTorrent).match(`grpc-message: Unable to find torrent for infoHash=${infoHash}`)) return c.notFound(); // before attempting to parse data, check response
+        
         const uint8array = new Uint8Array(queryTorrent);
-        let fixedTorrent = uint8array.subarray(9); // remove first nine bytes because Webtor.io adds them for some reason
-        // some torrents only have eight bytes, quick fix for issue #3. 
-        if(fixedTorrent[0] != 100) {
-            const a = new Uint8Array(1);
-            a[0] = 100; // literally the letter d
-            fixedTorrent = concatTypedArrays(a, fixedTorrent)
-        }
+        const index = uint8array.indexOf(100); // find the "d" character
+        if(index == -1) return c.notFound(); // If cannot find the letter "d", error
+        const fixedTorrent = uint8array.slice(index);
+        if(fixedTorrent[2] != 58) return c.notFound() // If ":" is not the 3rd character, error
         const parsedTorrent = await parseTorrent(fixedTorrent); 
         
         if(!parsedTorrent)
