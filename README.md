@@ -1,5 +1,5 @@
 # Webtor.io DDL
-Creates a zip file of a torrent through [Webtor.io's](https://webtor.io) hidden API
+Creates a zip file of a torrent through [Webtor.io's](https://webtor.io) hidden API. This project is UNOFFICIAL.
 
 # Demo
 https://webtorio-ddl.deno.dev

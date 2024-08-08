@@ -1,4 +1,4 @@
-// from https://stackoverflow.com/questions/53782603/how-to-covert-json-into-tree-like-folder-structure-in-javascript
+// From https://stackoverflow.com/questions/53782603/how-to-covert-json-into-tree-like-folder-structure-in-javascript
 export default function toTree(files = []) {
     const root = {};
     // Create structure where folder name is also a key in parent object

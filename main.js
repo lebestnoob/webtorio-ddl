@@ -5,7 +5,8 @@ import { etag } from 'hono/etag'
 import { cache } from 'hono/cache'
 import { compress } from 'hono/compress'
 import { html, raw } from 'hono/html'
-import toTree from "./toTree.js"
+// import toTree from "./utils/toTree.js" for future use in download screen
+import concatTypedArrays from "./utils/concatTypedArrays.js";
 
 const app = new Hono();
 
@@ -151,7 +152,7 @@ app.get("/downloads", async (c) => {
         }
         }).then((res)=>res.text());
         window.__TOKEN__ = tokenUpdate;
-    
+
     // obtain list of valid subdomains from api
         const subdomainList = await fetch(`https://api.${api}/subdomains.json?infohash=${infoHash}&use-bandwidth=false&use-cpu=true&skip-active-job-search=false&pool=seeder&token=${window.__TOKEN__}&api-key=${apiKey}`, {
         headers: {
@@ -167,8 +168,38 @@ app.get("/downloads", async (c) => {
             'te': 'trailers'
         }
         }).then((res)=>res.json());
-    
-        // query torrent from api to obtain file name
+        
+        // upload torrent to webtor 
+        const sendTorrent = await fetch("https://api.brilliant-bittern.buzz/store/TorrentStore/Touch", {
+            "headers": {
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+                "accept": "*/*",
+                "accept-language": "en-US,en;q=0.9",
+                "api-key": apiKey,
+                "cache-control": "no-cache",
+                "content-type": "application/grpc-web+proto",
+                "pragma": "no-cache",
+                "priority": "u=1, i",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "cross-site",
+                "sec-gpc": "1",
+                "token": window.__TOKEN__,
+                "user-id": "null",
+                "x-grpc-web": "1"
+            },
+            "referrer": "https://webtor.io/",
+            "referrerPolicy": "strict-origin-when-cross-origin",
+            "body": `\u0000\u0000\u0000\u0000*\n(${infoHash}`,
+            "method": "POST",
+            "mode": "cors",
+            "credentials": "omit"
+        });
+
+        // Assume something really bad happened if status isn't ok
+        if (!sendTorrent.ok) return c.text("500 Internal Server Error", 500)
+
+        // pull torrent from api to obtain information
         const queryTorrent = await fetch(`https://api.${api}/store/TorrentStore/Pull`, {
         headers: {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
@@ -194,9 +225,15 @@ app.get("/downloads", async (c) => {
         "mode": "cors",
         "credentials": "omit"
         }).then((res)=>res.arrayBuffer()); 
-   
+    
         const uint8array = new Uint8Array(queryTorrent);
-        const fixedTorrent = uint8array.subarray(9); // remove first nine bytes because Webtor.io adds them for some reason
+        let fixedTorrent = uint8array.subarray(9); // remove first nine bytes because Webtor.io adds them for some reason
+        // some torrents only have eight bytes, quick fix for issue #3. 
+        if(fixedTorrent[0] != 100) {
+            const a = new Uint8Array(1);
+            a[0] = 100; // literally the letter d
+            fixedTorrent = concatTypedArrays(a, fixedTorrent)
+        }
         const parsedTorrent = await parseTorrent(fixedTorrent); 
         
         if(!parsedTorrent)
