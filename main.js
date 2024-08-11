@@ -230,7 +230,7 @@ app.get("/downloads", async (c) => {
         const uint8array = new Uint8Array(queryTorrent);
         const index = uint8array.indexOf(100); // find the "d" character
         if(index == -1) return c.notFound(); // If cannot find the letter "d", error
-        const fixedTorrent = uint8array.slice(index);
+        const fixedTorrent = uint8array.subarray(index);
         if(fixedTorrent[2] != 58) return c.notFound() // If ":" is not the 3rd character, error
         const parsedTorrent = await parseTorrent(fixedTorrent); 
         
