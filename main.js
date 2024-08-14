@@ -252,7 +252,7 @@ app.get("/downloads", async (c) => {
                 mirrorList += html`<a rel="noreferrer noopener" target="_blank" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURIComponent(file.path.replaceAll("\\", "/"))}?user-id=${NEEDS_PARSE}&download=true&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a> `
             filesList+=html`
                 <details>
-                    <summary><img src="${getIconUrlForFilePath(file.name, "/node_modules/vscode-material-icons/generated/icons/")}" style="height: 1.5em; vertical-align: middle;"> ${file.name}</summary>
+                    <summary><img src="${getIconUrlForFilePath(file.name, "/static/vscode-material-icons/generated/icons")}" style="height: 1.5em; vertical-align: middle;"> ${file.name}</summary>
                     <p>File Size: <code>${prettyBytes(file.length, { binary: true })}</code></p>
                     <p>Path: <code>${file.path.replaceAll("\\", "/")}</code></p>
                     ${raw(mirrorList)}
@@ -311,7 +311,7 @@ app.get("/downloads", async (c) => {
 })
 
 // icons!
-app.use('/node_modules/vscode-material-icons/*', serveStatic({root: './'}))
+app.use('/static/vscode-material-icons/*', serveStatic({root: './'}))
 
 app.notFound((c) => {
   return c.html(
