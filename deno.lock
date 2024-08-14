@@ -4,7 +4,8 @@
     "specifiers": {
       "npm:hono@^4.5.0": "npm:hono@4.5.3",
       "npm:hono@^4.5.3": "npm:hono@4.5.3",
-      "npm:parse-torrent@^11.0.17": "npm:parse-torrent@11.0.17"
+      "npm:parse-torrent@^11.0.17": "npm:parse-torrent@11.0.17",
+      "npm:vscode-material-icons@^0.1.1": "npm:vscode-material-icons@0.1.1"
     },
     "npm": {
       "@thaunknown/thirty-two@1.0.5": {
@@ -110,6 +111,10 @@
           "base64-arraybuffer": "base64-arraybuffer@1.0.2"
         }
       },
+      "vscode-material-icons@0.1.1": {
+        "integrity": "sha512-GsoEEF8Tbb0yUFQ6N6FPvh11kFkL9F95x0FkKlbbfRQN9eFms67h+L3t6b9cUv58dSn2gu8kEhNfoESVCrz4ag==",
+        "dependencies": {}
+      },
       "web-streams-polyfill@3.3.3": {
         "integrity": "sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==",
         "dependencies": {}
@@ -122,7 +127,8 @@
   "workspace": {
     "dependencies": [
       "npm:hono@^4.5.3",
-      "npm:parse-torrent@^11.0.17"
+      "npm:parse-torrent@^11.0.17",
+      "npm:vscode-material-icons@^0.1.1"
     ],
     "packageJson": {
       "dependencies": [
