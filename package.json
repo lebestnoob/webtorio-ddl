@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "hono": "^4.5.3",
     "parse-torrent": "^11.0.17",
-    "hono": "^4.5.0"
+    "vscode-material-icons": "^0.1.1"
   }
 }
