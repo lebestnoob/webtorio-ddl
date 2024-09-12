@@ -11,11 +11,11 @@ import { getIconForFilePath, getIconUrlForFilePath } from 'vscode-material-icons
 
 const app = new Hono();
 
-// app.use('*', compress(), cache({
-//     cacheName: 'webtor-ddl',
-//     cacheControl: 'max-age=3600',
-//     wait: true,
-//   }), etag())
+app.use('*', compress(), cache({
+    cacheName: 'webtor-ddl',
+    cacheControl: 'max-age=3600',
+    wait: true,
+  }), etag())
 
 app.get("/", (c) => {
   return c.html(
