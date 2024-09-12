@@ -6,16 +6,16 @@ import { cache } from 'hono/cache'
 import { compress } from 'hono/compress'
 import { html, raw } from 'hono/html'
 import { serveStatic } from 'hono/deno'
-import { getIconUrlForFilePath } from 'vscode-material-icons';
+import { getIconForFilePath, getIconUrlForFilePath } from 'vscode-material-icons';
 // import toTree from "./utils/toTree.js" for future use in download screen
 
 const app = new Hono();
 
-app.use('*', compress(), cache({
-    cacheName: 'webtor-ddl',
-    cacheControl: 'max-age=3600',
-    wait: true,
-  }), etag())
+// app.use('*', compress(), cache({
+//     cacheName: 'webtor-ddl',
+//     cacheControl: 'max-age=3600',
+//     wait: true,
+//   }), etag())
 
 app.get("/", (c) => {
   return c.html(
@@ -170,36 +170,6 @@ app.get("/downloads", async (c) => {
         }
         }).then((res)=>res.json());
         
-        // upload torrent to webtor 
-        const sendTorrent = await fetch("https://api.brilliant-bittern.buzz/store/TorrentStore/Touch", {
-            "headers": {
-                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
-                "accept": "*/*",
-                "accept-language": "en-US,en;q=0.9",
-                "api-key": apiKey,
-                "cache-control": "no-cache",
-                "content-type": "application/grpc-web+proto",
-                "pragma": "no-cache",
-                "priority": "u=1, i",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "cross-site",
-                "sec-gpc": "1",
-                "token": window.__TOKEN__,
-                "user-id": "null",
-                "x-grpc-web": "1"
-            },
-            "referrer": "https://webtor.io/",
-            "referrerPolicy": "strict-origin-when-cross-origin",
-            "body": `\u0000\u0000\u0000\u0000*\n(${infoHash}`,
-            "method": "POST",
-            "mode": "cors",
-            "credentials": "omit"
-        });
-
-        // Assume something really bad happened if status isn't ok
-        if (!sendTorrent.ok) return c.text("500 Internal Server Error", 500)
-
         // pull torrent from api to obtain information
         const queryTorrent = await fetch(`https://api.${api}/store/TorrentStore/Pull`, {
         headers: {
@@ -227,7 +197,48 @@ app.get("/downloads", async (c) => {
         "credentials": "omit"
         }).then((res)=>res.arrayBuffer()); 
 
-        if (new TextDecoder().decode(queryTorrent).match(`grpc-message: Unable to find torrent for infoHash=${infoHash}`)) return c.notFound(); // before attempting to parse data, check response
+        const NEEDS_PARSE = "null"
+        if (new TextDecoder().decode(queryTorrent).match(`grpc-message: Unable to find torrent for infoHash=${infoHash}`)) { 
+             // return c.notFound();
+            // upload torrent to webtor
+           const socket = new WebSocket("wss://api.brilliant-bittern.buzz/magnet2torrent/Magnet2Torrent/Magnet2Torrent", ["grpc-websockets"], {
+                headers: {
+                    origin: "https://webtor.io"
+                }
+            });
+            socket.binaryType = "arraybuffer"
+
+            const authInfo = new TextEncoder().encode(`user-id: ${NEEDS_PARSE}\r\ntoken: ${window.__TOKEN__}\r\napi-key: ${apiKey}\r\ncontent-type: application/grpc-web+proto\r\nx-grpc-web: 1\r\n`) 
+
+            let beginDelimiter = "0000000001B10AAE03"; // hex, B1 and AE are random
+            beginDelimiter = new Uint8Array(beginDelimiter.match(/[\da-f]{2}/gi).map(function (h) {
+                return parseInt(h, 16)
+            })) // hex to uint8array
+            const magnet = new TextEncoder().encode(magnetLink); 
+            const merged = new Uint8Array(beginDelimiter.length + magnet.length) // merge both uint8arrays
+            merged.set(beginDelimiter)
+            merged.set(magnet,beginDelimiter.length)
+            const endDelimiter = new TextEncoder().encode("\x01");
+
+            socket.addEventListener("error", () => {
+                throw new Error()
+            });
+
+            socket.addEventListener("close", () => {
+                console.log("closed")
+            });
+
+            socket.addEventListener("open", (event) => {
+                socket.send(authInfo);
+                socket.send(merged)
+                socket.send(endDelimiter)
+            });
+
+            socket.addEventListener("message", (data) => {
+                console.log(new TextDecoder().decode(data.data));
+            });
+        
+        } 
         
         const uint8array = new Uint8Array(queryTorrent);
         const index = uint8array.indexOf(100); // find the "d" character
@@ -242,7 +253,6 @@ app.get("/downloads", async (c) => {
         const torrentName = parsedTorrent.name;
         const torrentSize = prettyBytes(parsedTorrent.length, { binary: true });
         const torrentFiles = parsedTorrent.files;
-        const NEEDS_PARSE = "null"
 
         // create html for torrent file contents 
         let filesList = html``;
@@ -252,7 +262,7 @@ app.get("/downloads", async (c) => {
                 mirrorList += html`<a rel="noreferrer noopener" target="_blank" href="https://${subdomainList[i]}.api.${api}/${infoHash}/${encodeURIComponent(file.path.replaceAll("\\", "/"))}?user-id=${NEEDS_PARSE}&download=true&download-id=${NEEDS_PARSE}&token=${window.__TOKEN__}&api-key=${apiKey}">Mirror ${Number(i)+1}</a> `
             filesList+=html`
                 <details>
-                    <summary><img src="${getIconUrlForFilePath(file.name, "/static/vscode-material-icons/generated/icons")}" style="height: 1.5em; vertical-align: middle;"> ${file.name}</summary>
+                    <summary><img src="${getIconUrlForFilePath(file.name, "/static/vscode-material-icons/generated/icons")}" style="height: 1.5em; vertical-align: middle;" alt="${getIconForFilePath(file.name)}"> ${file.name}</summary>
                     <p>File Size: <code>${prettyBytes(file.length, { binary: true })}</code></p>
                     <p>Path: <code>${file.path.replaceAll("\\", "/")}</code></p>
                     ${raw(mirrorList)}
