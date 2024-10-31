@@ -1,3 +1,6 @@
+# THIS PROJECT IS ARCHIVED!
+### There has been a breaking change in [Webtor.io's](https://webtor.io) API since the V2 release. The issues I had with the website (mobile interface) have been resolved, making this project redundant. Please use the official site.
+---
 # Webtor.io DDL (UNOFFICIAL)
 Creates a zip file of a torrent through [Webtor.io's](https://webtor.io) hidden API. This project is **UNOFFICIAL**.
 
